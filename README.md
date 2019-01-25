@@ -12,9 +12,9 @@ https://github.com/tensorflow/models/tree/master/research/object_detection
 # Environment
 I used this program with following environment
 
--- Ubuntu18.04.01 LTS
--- Python 3.5.6
--- TensorFlow1.10
+- Ubuntu18.04.01 LTS
+- Python 3.5.6
+- TensorFlow1.10
 
 
 # Link
