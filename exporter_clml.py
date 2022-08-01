@@ -31,7 +31,18 @@ from object_detection.data_decoders import tf_example_decoder
 from object_detection.utils import config_util
 from object_detection.utils import shape_utils
 
+# added for args
+from absl import flags
+
 slim = tf.contrib.slim
+
+flags.DEFINE_string('pipeline_config_path', None, 'Path to pipeline config file.')
+flags.DEFINE_string('checkpoint_dir', None, 'Path to the directory which'
+                    ' consists of the saved model.')
+flags.DEFINE_string('output_dir', None, 'Directory to export the saved_model.')
+flags.DEFINE_integer('model_version', 1, 'Model version number.')
+
+FLAGS = flags.FLAGS
 
 freeze_graph_with_def_protos = freeze_graph.freeze_graph_with_def_protos
 
@@ -512,35 +523,26 @@ from object_detection.utils.config_util import create_pipeline_proto_from_config
 from object_detection.utils.config_util import get_configs_from_pipeline_file
 
 def main():
-    # Configuration for model to be exported
-    config_pathname = '/home/i348221/Documents/od/input/faster_rcnn_resnet101_coco.config'
-    latest_filename = 'model.ckpt-1000'
+  flags.mark_flag_as_required('pipeline_config_path')
+  flags.mark_flag_as_required('checkpoint_dir')
+  flags.mark_flag_as_required('output_dir')
 
-    # Input checkpoint for the model to be exported
-    # Path to the directory which consists of the saved model on disk (see above)
-    trained_model_dir = '/home/i348221/Documents/od/export/checkpoint'
-#    trained_model_dir = '/home/i348221/Documents/od/model/export/0'
+  # Create proto from model confguration
+  configs = get_configs_from_pipeline_file(FLAGS.pipeline_config_path)  # change config_path to pipeline_config_path
 
-    # Create proto from model confguration
-    configs = get_configs_from_pipeline_file(config_pathname)
+  pipeline_proto = create_pipeline_proto_from_configs(configs=configs)
 
-    pipeline_proto = create_pipeline_proto_from_configs(configs=configs)
+  # Read .ckpt and .meta files from model directory
+  checkpoint = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+  input_checkpoint = checkpoint.model_checkpoint_path
 
-    # Read .ckpt and .meta files from model directory
-    # checkpoint = tf.train.get_checkpoint_state(trained_model_dir, latest_filename)
-    checkpoint = tf.train.get_checkpoint_state(trained_model_dir)
-    input_checkpoint = checkpoint.model_checkpoint_path
+  # Output Directory
+  output_directory = os.path.join(FLAGS.output_dir, str(FLAGS.model_version)) 
 
-    # Model Version
-    model_version_id = 2
-
-    # Output Directory
-    output_directory = '/home/i348221/Documents/od/model/export/' + str(model_version_id)
-
-    export_inference_graph(input_type='image_tensor', pipeline_config=pipeline_proto,
+  export_inference_graph(input_type='image_tensor', pipeline_config=pipeline_proto,
                                     trained_checkpoint_prefix=input_checkpoint, output_directory=output_directory)
 
 # main関数呼び出し
 if __name__ == "__main__":
-    main()
+    tf.compat.v1.app.run()
 # End   of insertion
